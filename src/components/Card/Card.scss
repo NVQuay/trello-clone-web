@@ -3,6 +3,8 @@
 $card-border-radius: 4px;
 
 .card-item {
+  margin: 5px;
+  padding: 10px;
   background-color: white;
   border-radius: $card-border-radius;
   cursor: pointer;
@@ -13,7 +15,7 @@ $card-border-radius: 4px;
   img.card-cover {
     display: block;
     width: 100%;
-    // margin: -$gap 0 $gap (-$gap);
+    margin: -$gap 0 $gap (-$gap);
     border-top-left-radius: $card-border-radius;
     border-bottom-right-radius: $card-border-radius;
   }
