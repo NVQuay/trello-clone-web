@@ -1,3 +1,5 @@
+// dữ liệu mẫu ban đầu
+
 export const initialData = {
   boards: [
     {
