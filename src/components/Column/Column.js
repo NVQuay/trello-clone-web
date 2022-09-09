@@ -12,9 +12,10 @@ import {
   saveContentAfterPressEnter,
   selectAllInLineText,
 } from "utilities/contentEditable";
+import { createNewCard, updateColumn } from "actions/ApiCall";
 
 function Column(props) {
-  const { column, onCardDrop, onUpdateColumn } = props;
+  const { column, onCardDrop, onUpdateColumnState } = props;
   const cards = mapOrder(column.cards, column.cardOrder, "_id");
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -43,26 +44,34 @@ function Column(props) {
       newCardTextareaRef.current.select();
     }
   }, [openNewCardForm]);
-
+  //Remove Column
   const onConfirmModalACtion = (type) => {
     if (type === MODAL_ACTION_CONFIRM) {
-      //remove column!!
       const newColumn = {
         ...column,
         _destroy: true,
       };
-      onUpdateColumn(newColumn);
+      //Call Api update column
+      updateColumn(newColumn._id, newColumn).then((updatedColumn) => {
+        onUpdateColumnState(updatedColumn);
+      });
     }
     toggleShowConfirmModal();
   };
 
-  const onNewColumnTitleBlur = () => {
-    console.log(columnTitle);
-    const newColumn = {
-      ...column,
-      _title: columnTitle,
-    };
-    onUpdateColumn(newColumn);
+  //Update Column Title
+  const handleNewColumnTitleBlur = () => {
+    if (columnTitle !== column.title) {
+      const newColumn = {
+        ...column,
+        title: columnTitle,
+      };
+      //Call Api update column
+      updateColumn(newColumn._id, newColumn).then((updatedColumn) => {
+        updatedColumn.cards = newColumn.cards;
+        onUpdateColumnState(updatedColumn);
+      });
+    }
   };
 
   const addNewCard = () => {
@@ -72,20 +81,20 @@ function Column(props) {
     }
 
     const newCardToAdd = {
-      id: Math.random().toString(36).substring(2, 5), // 5 random characters, will remove when we implement code api
       boardId: column.boardId,
       columnId: column._id,
       title: newCardTitle.trim(),
-      cover: null,
     };
+    // Call Api
+    createNewCard(newCardToAdd).then((card) => {
+      let newColumn = cloneDeep(column);
+      newColumn.cards.push(card);
+      newColumn.cardOrder.push(card._id);
 
-    let newColumn = cloneDeep(column);
-    newColumn.cards.push(newCardToAdd);
-    newColumn.cardOrder.push(newCardToAdd._id);
-
-    onUpdateColumn(newColumn);
-    setNewCardTitle("");
-    ToggleOpenNewCardForm();
+      onUpdateColumnState(newColumn);
+      setNewCardTitle("");
+      ToggleOpenNewCardForm();
+    });
   };
 
   return (
@@ -99,7 +108,7 @@ function Column(props) {
             className='tsebyuaqdev-content-editable'
             value={columnTitle}
             onChange={onNewColumnTitleChange}
-            onBlur={onNewColumnTitleBlur}
+            onBlur={handleNewColumnTitleBlur}
             onKeyDown={saveContentAfterPressEnter}
             spellCheck='false'
             onClick={selectAllInLineText}
